@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Last Archive</title>
@@ -9,8 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono&display=swap" rel="stylesheet">
-    <!-- Quill Editor Styles -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         :root {
             --bg: #121212;
@@ -37,29 +34,28 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
             padding: 40px 20px;
         }
 
-        /* Layout */
         .container {
-            max-width: 680px;
+            max-width: 400px;
             width: 100%;
         }
 
         header {
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 20px;
-            margin-bottom: 40px;
             text-align: center;
+            margin-bottom: 40px;
         }
 
         h1 {
             font-weight: 400;
             letter-spacing: -0.02em;
-            font-size: 1.8rem;
+            font-size: 2rem;
             color: var(--text);
             text-transform: lowercase;
+            margin-bottom: 10px;
         }
 
         .subtitle {
@@ -68,11 +64,10 @@
             font-size: 0.9rem;
         }
 
-        /* Auth Form */
         #auth-section {
-            margin-top: 100px;
             border: 1px solid var(--border);
             padding: 30px;
+            background: #181818;
         }
 
         .input-group {
@@ -93,7 +88,7 @@
             background: transparent;
             border: 1px solid var(--border);
             color: var(--text);
-            padding: 10px;
+            padding: 12px;
             font-family: var(--serif);
             font-size: 1rem;
             outline: none;
@@ -104,15 +99,17 @@
         }
 
         button {
+            width: 100%;
             background: transparent;
             border: 1px solid var(--accent);
             color: var(--accent);
-            padding: 8px 20px;
+            padding: 12px;
             cursor: pointer;
             font-family: var(--mono);
             font-size: 0.8rem;
             text-transform: uppercase;
             transition: all 0.2s;
+            margin-top: 10px;
         }
 
         button:hover {
@@ -121,105 +118,16 @@
         }
 
         .auth-toggle {
-            margin-top: 15px;
+            display: block;
+            margin-top: 20px;
+            text-align: center;
             font-size: 0.8rem;
             color: var(--dim);
             cursor: pointer;
             text-decoration: underline;
         }
 
-        /* Editor Section */
-        #editor-container {
-            display: none;
-            margin-bottom: 60px;
-        }
-
-        #editor {
-            height: 300px;
-            border: 1px solid var(--border) !important;
-            color: var(--text);
-            font-family: var(--serif);
-            font-size: 1.1rem;
-        }
-
-        .ql-toolbar {
-            background: #1a1a1a !important;
-            border-color: var(--border) !important;
-        }
-
-        .ql-stroke { stroke: var(--dim) !important; }
-        .ql-fill { fill: var(--dim) !important; }
-        .ql-picker { color: var(--dim) !important; }
-
-        .editor-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        #post-title {
-            margin-bottom: 10px;
-            font-size: 1.4rem;
-            border: none;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 5px;
-        }
-
-        /* Feed */
-        #feed {
-            margin-top: 40px;
-        }
-
-        .post {
-            margin-bottom: 60px;
-            padding-bottom: 40px;
-            border-bottom: 1px solid #1a1a1a;
-        }
-
-        .post-date {
-            font-family: var(--mono);
-            font-size: 0.7rem;
-            color: var(--dim);
-            margin-bottom: 10px;
-        }
-
-        .post-title {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: #eee;
-        }
-
-        .post-content {
-            color: var(--text);
-            font-size: 1.1rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 30px;
-            font-family: var(--mono);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-        }
-
-        .nav-links span {
-            cursor: pointer;
-            color: var(--dim);
-        }
-
-        .nav-links span:hover {
-            color: var(--text);
-        }
-
         .hidden { display: none !important; }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); }
     </style>
 </head>
 <body>
@@ -227,105 +135,44 @@
     <div class="container">
         <header>
             <h1>The Last Archive</h1>
-            <p class="subtitle">Quiet thoughts for an ending age.</p>
+            <p class="subtitle">Identity is required for access.</p>
         </header>
 
-        <nav id="user-nav" class="nav-links hidden">
-            <span onclick="showSection('feed')">Archive</span>
-            <span onclick="showSection('write')">New Entry</span>
-            <span onclick="handleLogout()">Logout</span>
-        </nav>
-
-        <!-- Auth View -->
         <div id="auth-section">
-            <h2 id="auth-title" style="font-weight: 400; margin-bottom: 20px; text-align: center;">Identity Verification</h2>
+            <h2 id="auth-title" style="font-weight: 400; margin-bottom: 20px; text-align: center; font-size: 1.2rem;">Verification</h2>
             <div class="input-group">
                 <label>Email Address</label>
-                <input type="email" id="auth-email">
+                <input type="email" id="auth-email" placeholder="archivist@echoes.net">
             </div>
             <div class="input-group">
                 <label>Access Code</label>
-                <input type="password" id="auth-password">
+                <input type="password" id="auth-password" placeholder="••••••••">
             </div>
-            <button id="auth-submit-btn" onclick="handleAuth()" style="width: 100%;">Enter</button>
-            <div style="text-align: center;">
-                <span class="auth-toggle" id="auth-toggle-text" onclick="toggleAuthMode()">No account? Create one.</span>
-            </div>
-        </div>
-
-        <!-- Writing View -->
-        <div id="editor-container">
-            <input type="text" id="post-title" placeholder="Untitled Document">
-            <div id="editor"></div>
-            <div class="editor-actions">
-                <span style="font-family: var(--mono); font-size: 0.7rem; color: var(--dim);" id="save-status">Ready</span>
-                <button onclick="publishPost()">Publish to Archive</button>
-            </div>
-        </div>
-
-        <!-- Feed View -->
-        <div id="feed" class="hidden">
-            <!-- Posts will be injected here -->
-            <div style="text-align: center; color: var(--dim); font-style: italic;" id="feed-status">Loading archive...</div>
+            <button id="auth-submit-btn" onclick="handleAuth()">Enter Archive</button>
+            <span class="auth-toggle" id="auth-toggle-text" onclick="toggleAuthMode()">No record? Register here.</span>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="supabase.js"></script>
 
     <script>
-        let quill;
         let isSignUp = false;
-        let currentUser = null;
-
-        // Initialize Quill
-        function initQuill() {
-            quill = new Quill('#editor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        ['bold', 'italic', 'blockquote'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['clean']
-                    ]
-                },
-                placeholder: 'Write into the silence...'
-            });
-        }
-
-        // Section Toggling
-        function showSection(section) {
-            const authSection = document.getElementById('auth-section');
-            const editorSection = document.getElementById('editor-container');
-            const feedSection = document.getElementById('feed');
-            
-            authSection.classList.add('hidden');
-            editorSection.classList.add('hidden');
-            feedSection.classList.add('hidden');
-
-            if (section === 'auth') authSection.classList.remove('hidden');
-            if (section === 'write') editorSection.classList.remove('hidden');
-            if (section === 'feed') {
-                feedSection.classList.remove('hidden');
-                fetchPosts();
-            }
-        }
 
         function toggleAuthMode() {
             isSignUp = !isSignUp;
-            document.getElementById('auth-title').innerText = isSignUp ? "Establish Record" : "Identity Verification";
-            document.getElementById('auth-submit-btn').innerText = isSignUp ? "Register" : "Enter";
-            document.getElementById('auth-toggle-text').innerText = isSignUp ? "Already known? Login." : "No account? Create one.";
+            document.getElementById('auth-title').innerText = isSignUp ? "Establish Record" : "Verification";
+            document.getElementById('auth-submit-btn').innerText = isSignUp ? "Register" : "Enter Archive";
+            document.getElementById('auth-toggle-text').innerText = isSignUp ? "Already recorded? Login." : "No record? Register here.";
         }
 
-        // Auth Logic
         async function handleAuth() {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
             const btn = document.getElementById('auth-submit-btn');
             
+            if(!email || !password) return;
+
             btn.disabled = true;
             btn.innerText = "Processing...";
 
@@ -340,112 +187,28 @@
                 if (result.error) throw result.error;
                 
                 if (isSignUp) {
-                    alert("Account created. Please check email for confirmation (if enabled) or try logging in.");
+                    alert("Registration successful. You may now enter.");
                     toggleAuthMode();
                 } else {
-                    currentUser = result.data.user;
-                    checkSession();
+                    // Successful login: Redirect to archive.html
+                    window.location.href = 'archive.html';
                 }
             } catch (err) {
                 alert(err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerText = isSignUp ? "Register" : "Enter";
+                btn.innerText = isSignUp ? "Register" : "Enter Archive";
             }
-        }
-
-        async function handleLogout() {
-            await window.supabaseClient.auth.signOut();
-            currentUser = null;
-            location.reload();
         }
 
         async function checkSession() {
             const { data } = await window.supabaseClient.auth.getSession();
             if (data.session) {
-                currentUser = data.session.user;
-                document.getElementById('user-nav').classList.remove('hidden');
-                showSection('feed');
-            } else {
-                showSection('auth');
+                window.location.href = 'archive.html';
             }
         }
 
-        // Post Logic
-        async function publishPost() {
-            const title = document.getElementById('post-title').value || "Untitled Document";
-            const content = quill.root.innerHTML;
-            const statusLabel = document.getElementById('save-status');
-
-            if (quill.getText().trim().length < 2) return alert("Archive requires content.");
-
-            statusLabel.innerText = "Syncing...";
-
-            const { error } = await window.supabaseClient
-                .from('posts')
-                .insert([
-                    { 
-                        title: title, 
-                        content: content, 
-                        user_id: currentUser.id,
-                        created_at: new Date().toISOString()
-                    }
-                ]);
-
-            if (error) {
-                alert("Archive failure: " + error.message);
-                statusLabel.innerText = "Error";
-            } else {
-                document.getElementById('post-title').value = "";
-                quill.setContents([]);
-                statusLabel.innerText = "Saved to Archive";
-                setTimeout(() => showSection('feed'), 1000);
-            }
-        }
-
-        async function fetchPosts() {
-            const feed = document.getElementById('feed');
-            const status = document.getElementById('feed-status');
-            
-            const { data, error } = await window.supabaseClient
-                .from('posts')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                status.innerText = "Failed to retrieve archives.";
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                status.innerText = "The archive is currently empty.";
-                return;
-            }
-
-            status.classList.add('hidden');
-            feed.innerHTML = ''; // Clear feed
-
-            data.forEach(post => {
-                const date = new Date(post.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric', month: 'long', day: 'numeric'
-                });
-                
-                const postEl = document.createElement('div');
-                postEl.className = 'post';
-                postEl.innerHTML = `
-                    <div class="post-date">${date}</div>
-                    <h2 class="post-title">${post.title}</h2>
-                    <div class="post-content">${post.content}</div>
-                `;
-                feed.appendChild(postEl);
-            });
-        }
-
-        // App Boot
-        window.onload = () => {
-            initQuill();
-            checkSession();
-        };
+        window.onload = checkSession;
     </script>
-
+</body>
 </html>
