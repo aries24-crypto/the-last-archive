@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Last Archive — Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+    
+    <!-- Quill.js for rich text editing -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-main: #0a0a0a;
+            --bg-sidebar: #050505;
+            --border-color: #1a1a1a;
+            --text-main: #d1d1d1;
+            --text-muted: #666666;
+            --accent: #999999;
+            --serif: 'EB Garamond', serif;
+            --sans: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: var(--serif);
+            line-height: 1.6;
+            overflow: hidden; /* Manage scrolling in main area */
+            height: 100vh;
+            display: flex;
+        }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-main);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.1em;
+            font-size: 0.9rem;
+            text-transform: lowercase;
+            color: var(--text-muted);
+        }
+
+        /* Sidebar Styling */
+        aside {
+            width: 220px;
+            height: 100vh;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .branding {
+            margin-bottom: 3rem;
+        }
+
+        .branding h1 {
+            font-weight: 500;
+            font-size: 1.2rem;
+            letter-spacing: -0.01em;
+            color: var(--text-main);
+        }
+
+        .branding p {
+            font-family: var(--sans);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        nav {
+            flex-grow: 1;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav li {
+            margin-bottom: 0.75rem;
+        }
+
+        nav a, .logout-btn {
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+            cursor: pointer;
+            background: none;
+            border: none;
+            display: block;
+            width: 100%;
+            text-align: left;
+        }
+
+        nav a:hover, nav a.active, .logout-btn:hover {
+            color: var(--text-main);
+        }
+
+        .nav-separator {
+            height: 1px;
+            background: var(--border-color);
+            margin: 1.5rem 0;
+        }
+
+        /* Main Workspace */
+        main {
+            flex-grow: 1;
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            padding: 4rem 2rem;
+        }
+
+        .workspace-container {
+            width: 100%;
+            max-width: 720px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Editor Header */
+        .editor-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-family: var(--sans);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .title-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid transparent;
+            color: var(--text-main);
+            font-family: var(--serif);
+            font-size: 2.4rem;
+            font-weight: 500;
+            padding: 0.5rem 0;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .title-input:focus {
+            border-bottom-color: var(--border-color);
+        }
+
+        .title-input::placeholder {
+            color: #222;
+        }
+
+        /* Quill Customization */
+        #editor-container {
+            height: auto;
+            min-height: 400px;
+            font-family: var(--serif);
+            font-size: 1.15rem;
+            color: var(--text-main);
+            border: none !important;
+        }
+
+        .ql-toolbar.ql-snow {
+            border: none !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            padding: 0.5rem 0 !important;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+
+        .ql-toolbar.ql-snow:hover {
+            opacity: 1;
+        }
+
+        .ql-container.ql-snow {
+            border: none !important;
+        }
+
+        .ql-editor {
+            padding: 0 !important;
+            min-height: 400px;
+        }
+
+        .ql-editor.ql-blank::before {
+            color: #222 !important;
+            font-style: italic !important;
+            left: 0 !important;
+        }
+
+        /* Footer Actions */
+        .editor-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1.5rem;
+        }
+
+        .save-status {
+            font-family: var(--sans);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        button.action-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.5rem 1.2rem;
+            font-family: var(--sans);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button.action-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-main);
+        }
+
+        button.action-btn.primary {
+            background: var(--text-main);
+            color: var(--bg-main);
+            border-color: var(--text-main);
+        }
+
+        button.action-btn.primary:hover {
+            background: transparent;
+            color: var(--text-main);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+        }
+
+        /* Utility */
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">connecting to archive...</div>
+
+    <!-- Sidebar Navigation -->
+    <aside>
+        <div class="branding">
+            <h1>The Last Archive</h1>
+            <p>quiet thoughts for an ending age</p>
+        </div>
+
+        <nav>
+            <ul>
+                <li><a href="#" class="active" onclick="setView('new')">New Entry</a></li>
+                <li><a href="#" onclick="setView('drafts')">Drafts</a></li>
+                <li><a href="#" onclick="setView('published')">Published</a></li>
+                <li><a href="#" onclick="setView('archive')">Public Archive</a></li>
+            </ul>
+            <div class="nav-separator"></div>
+            <button class="logout-btn" id="logout-btn">Logout</button>
+        </nav>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main>
+        <div class="workspace-container" id="writing-view">
+            <div class="editor-header">
+                <div class="status-bar">
+                    <span id="doc-state">New Draft</span>
+                    <span id="doc-id">Untitled.txt</span>
+                </div>
+                <input type="text" id="post-title" class="title-input" placeholder="Title of the entry..." autocomplete="off">
+            </div>
+
+            <div id="editor-container"></div>
+
+            <div class="editor-footer">
+                <span class="save-status" id="save-status">All changes synced.</span>
+                <button class="action-btn" id="save-draft">Save Draft</button>
+                <button class="action-btn primary" id="publish-post">Publish to Archive</button>
+            </div>
+        </div>
+
+        <!-- Placeholder for Lists (Drafts/Published) -->
+        <div class="workspace-container hidden" id="list-view">
+            <div class="editor-header">
+                <div class="status-bar">
+                    <span id="list-title">Your Drafts</span>
+                </div>
+                <h2 style="font-weight: 400; font-size: 1.5rem; color: var(--text-muted);">Index of recent activity</h2>
+            </div>
+            <div id="items-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- Supabase Config ---
+        const supabaseUrl = ""; // To be filled by environment
+        const supabaseKey = ""; // To be filled by environment
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let quill;
+        let currentUser = null;
+        let currentPostId = null;
+
+        // Initialize App
+        window.onload = async () => {
+            initQuill();
+            checkSession();
+            setupEventListeners();
+        };
+
+        function initQuill() {
+            quill = new Quill('#editor-container', {
+                theme: 'snow',
+                placeholder: 'Begin your reflection...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'blockquote'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['clean']
+                    ]
+                }
+            });
+        }
+
+        async function checkSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'index.html'; // Redirect to login if no session
+                return;
+            }
+            currentUser = session.user;
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        function setupEventListeners() {
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                window.location.href = 'index.html';
+            });
+
+            document.getElementById('save-draft').addEventListener('click', () => savePost(false));
+            document.getElementById('publish-post').addEventListener('click', () => savePost(true));
+            
+            // Auto-save status simulation
+            quill.on('text-change', () => {
+                document.getElementById('save-status').innerText = 'Unsaved changes...';
+            });
+        }
+
+        async function savePost(isPublished) {
+            const title = document.getElementById('post-title').value;
+            const content = quill.root.innerHTML;
+
+            if (!title) {
+                updateStatus("A title is required for the archive.");
+                return;
+            }
+
+            document.getElementById('save-status').innerText = 'Archiving...';
+
+            const postData = {
+                title,
+                content,
+                author_id: currentUser.id,
+                is_published: isPublished,
+                updated_at: new Date()
+            };
+
+            let result;
+            if (currentPostId) {
+                result = await supabase.from('posts').update(postData).eq('id', currentPostId);
+            } else {
+                result = await supabase.from('posts').insert([postData]).select();
+                if (result.data) currentPostId = result.data[0].id;
+            }
+
+            if (result.error) {
+                updateStatus("Error reaching the archive.");
+            } else {
+                updateStatus(isPublished ? "Entry published." : "Draft preserved.");
+                document.getElementById('doc-state').innerText = isPublished ? "Published" : "Draft";
+            }
+        }
+
+        function updateStatus(msg) {
+            document.getElementById('save-status').innerText = msg;
+            setTimeout(() => {
+                document.getElementById('save-status').innerText = 'All changes synced.';
+            }, 3000);
+        }
+
+        function setView(view) {
+            const writingView = document.getElementById('writing-view');
+            const listView = document.getElementById('list-view');
+            
+            // UI Toggle
+            document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (view === 'new') {
+                writingView.classList.remove('hidden');
+                listView.classList.add('hidden');
+                resetEditor();
+            } else if (view === 'drafts' || view === 'published') {
+                writingView.classList.add('hidden');
+                listView.classList.remove('hidden');
+                fetchPosts(view === 'published');
+            } else if (view === 'archive') {
+                // Future link to public site
+                window.open('/', '_blank');
+            }
+        }
+
+        function resetEditor() {
+            currentPostId = null;
+            document.getElementById('post-title').value = '';
+            quill.setContents([]);
+            document.getElementById('doc-state').innerText = 'New Draft';
+        }
+
+        async function fetchPosts(publishedOnly) {
+            const listTitle = document.getElementById('list-title');
+            const itemsList = document.getElementById('items-list');
+            
+            listTitle.innerText = publishedOnly ? "Published Entries" : "Drafts";
+            itemsList.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Consulting indices...</p>';
+
+            const { data, error } = await supabase
+                .from('posts')
+                .select('*')
+                .eq('author_id', currentUser.id)
+                .eq('is_published', publishedOnly)
+                .order('updated_at', { ascending: false });
+
+            if (error) {
+                itemsList.innerHTML = '<p>Could not retrieve entries.</p>';
+                return;
+            }
+
+            if (data.length === 0) {
+                itemsList.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">No ${publishedOnly ? 'published entries' : 'drafts'} found.</p>`;
+                return;
+            }
+
+            itemsList.innerHTML = '';
+            data.forEach(post => {
+                const item = document.createElement('div');
+                item.style.padding = '1rem 0';
+                item.style.borderBottom = '1px solid var(--border-color)';
+                item.style.cursor = 'pointer';
+                
+                const date = new Date(post.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                
+                item.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <h3 style="font-weight: 400; font-size: 1.1rem; color: var(--text-main);">${post.title || 'Untitled'}</h3>
+                        <span style="font-family: var(--sans); font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">${date}</span>
+                    </div>
+                `;
+                
+                item.onclick = () => loadPost(post);
+                itemsList.appendChild(item);
+            });
+        }
+
+        function loadPost(post) {
+            currentPostId = post.id;
+            document.getElementById('post-title').value = post.title;
+            quill.root.innerHTML = post.content;
+            document.getElementById('doc-state').innerText = post.is_published ? "Published" : "Draft";
+            document.getElementById('doc-id').innerText = post.title.toLowerCase().replace(/\s+/g, '_') + '.txt';
+            
+            document.getElementById('writing-view').classList.remove('hidden');
+            document.getElementById('list-view').classList.add('hidden');
+            
+            document.querySelectorAll('nav a').forEach(a => {
+                if (a.innerText === 'New Entry') a.classList.add('active');
+                else a.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+</html>
